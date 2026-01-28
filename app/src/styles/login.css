@@ -1,0 +1,36 @@
+.login-wrapper {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f5f7fa;
+}
+
+.login-card {
+  width: 380px;
+  padding: 28px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 24px;
+}
+
+/* DARK MODE */
+[data-theme="dark"] .login-wrapper {
+  background: #020617;
+}
+
+[data-theme="dark"] .login-card {
+  background: #020617;
+  color: #e5e7eb;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}

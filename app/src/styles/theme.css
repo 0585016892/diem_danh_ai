@@ -1,0 +1,30 @@
+:root {
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --text: #1f2937;
+  --primary: #2563eb;
+}
+
+/* DARK */
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #e5e7eb;
+  --primary: #38bdf8;
+}
+
+/* ROLE */
+[data-role="admin"] {
+  --primary: #7c3aed;
+}
+
+[data-role="staff"] {
+  --primary: #059669;
+}
+
+body {
+  background: var(--bg);
+  margin: 0;
+  color: var(--text);
+  transition: background 0.4s ease, color 0.4s ease;
+}
