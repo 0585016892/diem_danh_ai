@@ -1,0 +1,17 @@
+# node
+node_modules/
+.env
+
+# logs
+logs/
+*.log
+
+# uploads (ảnh điểm danh)
+uploads/
+
+# build
+dist/
+build/
+
+# OS
+.DS_Store
