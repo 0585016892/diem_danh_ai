@@ -10,6 +10,7 @@ import {
   Space,
   Tag,
   Tabs,
+  Divider,
 } from "antd";
 import {
   UserOutlined,
@@ -27,7 +28,6 @@ export default function Profile() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  /* ===== LOAD PROFILE ===== */
   useEffect(() => {
     userApi
       .getProfile()
@@ -40,12 +40,9 @@ export default function Profile() {
       );
   }, [form]);
 
-  /* ===== UPDATE INFO ===== */
   const updateProfile = async values => {
     setLoading(true);
     try {
-      console.log("gọi api");
-      
       await userApi.updateProfile(values);
       message.success("Cập nhật thông tin thành công");
     } catch {
@@ -54,7 +51,6 @@ export default function Profile() {
     setLoading(false);
   };
 
-  /* ===== CHANGE PASSWORD ===== */
   const changePassword = async values => {
     setLoading(true);
     try {
@@ -73,78 +69,115 @@ export default function Profile() {
   if (!user) return null;
 
   return (
-    <div style={{ width: "100%" }}>
-      {/* ================= COVER ================= */}
-      <div
+    <div style={{ padding: 24 }}>
+      {/* ================= HEADER ================= */}
+      <Card
+        bordered={false}
         style={{
-          height: 260,
+          borderRadius: 24,
           background:
-            "linear-gradient(135deg,#1877f2,#4e8cff)",
-          borderRadius: 16,
-          position: "relative",
+            "linear-gradient(135deg, #1e3c72, #2a5298)",
+          color: "#fff",
         }}
       >
-        <Avatar
-          size={150}
-          icon={<UserOutlined />}
-          style={{
-            position: "absolute",
-            bottom: -75,
-            left: 40,
-            border: "6px solid white",
-            background: "#fff",
-            color: "#1877f2",
-          }}
-        />
-      </div>
+        <Row align="middle" gutter={24}>
+          <Col>
+            <Avatar
+              size={120}
+              icon={<UserOutlined />}
+              style={{
+                background: "#fff",
+                color: "#2a5298",
+                boxShadow: "0 0 0 6px rgba(255,255,255,0.25)",
+              }}
+            />
+          </Col>
 
-      {/* ================= BASIC INFO ================= */}
-      <div style={{ paddingLeft: 220, marginTop: 20 }}>
-        <Space size="middle" align="center">
-          <h1 style={{ margin: 0 }}>{user.name}</h1>
-        </Space>
-        <div style={{ color: "#555", marginTop: 6 }}>
-          {user.email}
-        </div>
-      </div>
+          <Col flex="auto">
+            <h1 style={{ marginBottom: 4, color: "#fff" }}>
+              {user.name}
+            </h1>
+            <div style={{ opacity: 0.85 }}>{user.email}</div>
+
+            <Space style={{ marginTop: 12 }}>
+              <Tag color="blue">
+                {user.role === "admin"
+                  ? "Quản trị hệ thống"
+                  : "Giáo viên"}
+              </Tag>
+              <Tag
+                color={
+                  user.status === "active" ? "green" : "red"
+                }
+              >
+                {user.status === "active"
+                  ? "Đang hoạt động"
+                  : "Ngưng hoạt động"}
+              </Tag>
+            </Space>
+          </Col>
+        </Row>
+      </Card>
 
       {/* ================= CONTENT ================= */}
-      <Row gutter={24} style={{ marginTop: 40 }}>
-        {/* LEFT – ABOUT */}
+      <Row gutter={24} style={{ marginTop: 32 }}>
+        {/* INFO CARD */}
         <Col span={8}>
           <Card
-            title="Giới thiệu"
             bordered={false}
-            style={{ borderRadius: 16 }}
+            style={{
+              borderRadius: 20,
+              height: "100%",
+            }}
           >
-            <p><b>Email:</b> {user.email}</p>
-            <p><b>Vai trò:</b> {user.role === 'admin' ? 'Quản trị hệ thống' : 'Giáo viên'}</p>
+            <h3>Thông tin tài khoản</h3>
+            <Divider />
+
             <p>
-              <b>Trạng thái:</b>{" "}
-              <Tag color={user.status === "active" ? "green" : "red"}>
-                {user.status === 'active' ? 'Đang hoạt động' : 'Ngưng hoạt động'}
-              </Tag>
+              <b>Email:</b> <br /> {user.email}
             </p>
-            <p><b>Ngày tạo:</b> {user.created_at}</p>
+
+            <p>
+              <b>Vai trò:</b> <br />
+              {user.role === "admin"
+                ? "Quản trị hệ thống"
+                : "Giáo viên"}
+            </p>
+
+            <p>
+              <b>Ngày tạo:</b> <br />
+              {user.created_at}
+            </p>
           </Card>
         </Col>
 
-        {/* RIGHT – TABS */}
+        {/* TABS */}
         <Col span={16}>
-          <Card bordered={false} style={{ borderRadius: 16 }}>
-            <Tabs defaultActiveKey="info">
-              {/* ===== TAB: UPDATE INFO ===== */}
-              <TabPane tab="Sửa thông tin" key="info">
+          <Card
+            bordered={false}
+            style={{ borderRadius: 20 }}
+          >
+            <Tabs
+              defaultActiveKey="info"
+              size="large"
+            >
+              {/* UPDATE INFO */}
+              <TabPane tab="Cập nhật thông tin" key="info">
                 <Form
                   form={form}
                   layout="vertical"
                   onFinish={updateProfile}
-                  style={{ maxWidth: 500 }}
+                  style={{ maxWidth: 420 }}
                 >
                   <Form.Item
                     name="name"
                     label="Họ tên"
-                    rules={[{ required: true, message: "Nhập họ tên" }]}
+                    rules={[
+                      {
+                        required: true,
+                        message: "Nhập họ tên",
+                      },
+                    ]}
                   >
                     <Input
                       size="large"
@@ -152,7 +185,10 @@ export default function Profile() {
                     />
                   </Form.Item>
 
-                  <Form.Item name="email" label="Email">
+                  <Form.Item
+                    name="email"
+                    label="Email"
+                  >
                     <Input
                       size="large"
                       disabled
@@ -163,7 +199,6 @@ export default function Profile() {
                   <Button
                     type="primary"
                     size="large"
-                    htmlType="submit"
                     loading={loading}
                   >
                     Lưu thay đổi
@@ -171,13 +206,13 @@ export default function Profile() {
                 </Form>
               </TabPane>
 
-              {/* ===== TAB: CHANGE PASSWORD ===== */}
+              {/* CHANGE PASSWORD */}
               <TabPane tab="Đổi mật khẩu" key="password">
                 <Form
                   form={passwordForm}
                   layout="vertical"
                   onFinish={changePassword}
-                  style={{ maxWidth: 400 }}
+                  style={{ maxWidth: 360 }}
                 >
                   <Form.Item
                     name="oldPassword"
@@ -195,7 +230,10 @@ export default function Profile() {
                     label="Mật khẩu mới"
                     rules={[
                       { required: true },
-                      { min: 6, message: "Ít nhất 6 ký tự" },
+                      {
+                        min: 6,
+                        message: "Ít nhất 6 ký tự",
+                      },
                     ]}
                   >
                     <Input.Password
@@ -208,7 +246,6 @@ export default function Profile() {
                     type="primary"
                     danger
                     size="large"
-                    htmlType="submit"
                     loading={loading}
                   >
                     Đổi mật khẩu

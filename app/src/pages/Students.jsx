@@ -34,6 +34,20 @@ export default function Students() {
   const [faceDescriptor, setFaceDescriptor] = useState(null);
   const [detecting, setDetecting] = useState(false);
 
+  /*modal */
+  const [viewOpen, setViewOpen] = useState(false);
+  const [viewData, setViewData] = useState(null);
+
+  const handleView = async (id) => {
+    try {
+      const res = await studentApi.getOne(id);
+      setViewData(res.data);
+      setViewOpen(true);
+    } catch (e) {
+      message.error("Không lấy được thông tin học sinh");
+    }
+  };
+
   /* ================= LOAD DATA ================= */
   const loadData = async (params = {}) => {
     const res = await studentApi.getAll(params);
@@ -74,14 +88,11 @@ export default function Students() {
       dataIndex: "date_of_birth",
       render: (v) => (v ? dayjs(v).format("DD/MM/YYYY") : ""),
     },
-    { title: "SĐT", dataIndex: "phone" },
-    { title: "Email", dataIndex: "email" },
-    { title: "Địa chỉ", dataIndex: "address" },
     {
       title: "Trạng thái",
       render: (_, r) => (
         <Tag color={r.status === "active" ? "green" : "red"}>
-          {r.status}
+          {r.status === 'active' ? 'Đang học' : 'Ngưng học'}
         </Tag>
       ),
     },
@@ -89,6 +100,8 @@ export default function Students() {
       title: "Hành động",
       render: (_, r) => (
         <Space>
+         <Button onClick={() => handleView(r.id)}>👁 Xem</Button>
+
           <Button
             onClick={() => {
               setEditing(r);
@@ -230,6 +243,134 @@ const [importClass, setImportClass] = useState(null);
       </Space>
 
       <Table rowKey="id" columns={columns} dataSource={data} bordered />
+      <Modal
+        open={viewOpen}
+        title="📄 Thông tin học sinh"
+        footer={null}
+        width={1000}
+        onCancel={() => {
+          setViewOpen(false);
+          setViewData(null);
+        }}
+      >
+        {viewData && (
+          <>
+            {/* ===== CARD HEADER ===== */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 20,
+                padding: 16,
+                background: "#fafafa",
+                borderRadius: 12,
+                marginBottom: 24,
+              }}
+            >
+              {viewData.face_image ? (
+                <img
+                  src={`http://localhost:20031/uploads/students/${viewData.face_image}`}
+                  style={{
+                    width: 96,
+                    height: 96,
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                    border: "3px solid #fff",
+                    boxShadow: "0 2px 8px rgba(0,0,0,.15)",
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: 96,
+                    height: 96,
+                    borderRadius: "50%",
+                    background: "#eee",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 28,
+                  }}
+                >
+                  👤
+                </div>
+              )}
+
+              <div style={{ flex: 1 }}>
+                <h3 style={{ margin: 0 }}>{viewData.name}</h3>
+                <div style={{ color: "#888" }}>
+                  Mã HS: {viewData.student_code} · Lớp: {viewData.class_name}
+                </div>
+              </div>
+
+              <Tag
+                color={viewData.status === "active" ? "green" : "red"}
+                style={{ fontSize: 14, padding: "4px 12px" }}
+              >
+                {viewData.status === "active" ? "Đang học" : "Ngưng học"}
+              </Tag>
+            </div>
+
+            {/* ===== INFO SECTION ===== */}
+            <Row gutter={24}>
+              <Col span={12}>
+                <div
+                  style={{
+                    padding: 16,
+                    border: "1px solid #f0f0f0",
+                    borderRadius: 12,
+                  }}
+                >
+                  <h4>🎓 Thông tin học sinh</h4>
+
+                  <p><b>Giới tính:</b> {viewData.gender === 'male' ? 'Name' : 'Nữ' || "-"}</p>
+                  <p>
+                    <b>Ngày sinh:</b>{" "}
+                    {viewData.date_of_birth
+                      ? dayjs(viewData.date_of_birth).format("DD/MM/YYYY")
+                      : "-"}
+                  </p>
+                  <p><b>Địa chỉ:</b> {viewData.address || "-"}</p>
+                </div>
+              </Col>
+
+              <Col span={12}>
+                <div
+                  style={{
+                    padding: 16,
+                    border: "1px solid #f0f0f0",
+                    borderRadius: 12,
+                  }}
+                >
+                  <h4>👨‍👩‍👧 Thông tin phụ huynh</h4>
+
+                  <p><b>Tên:</b> {viewData.parent_name || "-"}</p>
+                  <p><b>SĐT:</b> {viewData.phone || "-"}</p>
+                  <p><b>Email:</b> {viewData.email || "-"}</p>
+                  <p><b>Quan hệ:</b> {viewData.parent_relation === 'father' ? 'Bố' :'Mẹ' || "-"}</p>
+                </div>
+              </Col>
+            </Row>
+
+            {/* ===== NOTE ===== */}
+            {viewData.note && (
+              <div
+                style={{
+                  marginTop: 24,
+                  padding: 16,
+                  background: "#fffbe6",
+                  border: "1px solid #ffe58f",
+                  borderRadius: 12,
+                }}
+              >
+                <h4>📝 Ghi chú</h4>
+                {viewData.note}
+              </div>
+            )}
+          </>
+        )}
+      </Modal>
+
 
       {/* MODAL */}
       <Modal
@@ -273,6 +414,9 @@ const [importClass, setImportClass] = useState(null);
                   ))}
                 </Select>
               </Form.Item>
+               <Form.Item name="parent_name" label="Họ tên phụ huynh">
+                <Input />
+              </Form.Item>
             </Col>
 
             <Col span={8}>
@@ -287,6 +431,13 @@ const [importClass, setImportClass] = useState(null);
               </Form.Item>
               <Form.Item name="phone" label="SĐT">
                 <Input />
+              </Form.Item>
+               <Form.Item name="parent_relation" label="Quan hệ với học sinh">
+                <Select>
+                  <Select.Option value="father">Bố</Select.Option>
+                  <Select.Option value="mother">Mẹ</Select.Option>
+                  <Select.Option value="guardian">Người giám hộ</Select.Option>
+                </Select>
               </Form.Item>
             </Col>
 
@@ -303,12 +454,24 @@ const [importClass, setImportClass] = useState(null);
                   <Select.Option value="inactive">Ngưng</Select.Option>
                 </Select>
               </Form.Item>
+             <Form.Item name="note" label="Ghi chú">
+                <Input.TextArea
+                  rows={4}
+                  placeholder="Nhập ghi chú về học sinh..."
+                  showCount
+                  maxLength={300}
+                  style={{
+                    borderRadius: 8,
+                  }}
+                />
+              </Form.Item>
+
             </Col>
           </Row>
 
           {/* ===== UPLOAD + DETECT ===== */}
           <Row gutter={16}>
-            <Col span={12}>
+            <Col span={6}>
               <Upload
                 listType="picture-card"
                 beforeUpload={() => false}
@@ -430,7 +593,7 @@ const [importClass, setImportClass] = useState(null);
       <b>name | student_code | gender | date_of_birth | phone | email | address | status</b>
     </div>
   </Space>
-</Modal>
+      </Modal>
 
     </div>
   );

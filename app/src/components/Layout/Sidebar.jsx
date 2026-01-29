@@ -69,7 +69,7 @@ export default function Sidebar({ collapsed }) {
       }}
     >
       {/* LOGO */}
-      <div style={styles.logo}>
+      <div style={styles.logo} >
         <img src={LogoH} width={42} alt="logo" />
         {!collapsed && (
           <div>

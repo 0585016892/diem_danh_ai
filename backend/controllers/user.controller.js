@@ -7,7 +7,7 @@ exports.getAll = async (req, res) => {
     const { keyword, role, status } = req.query;
 
     let sql = `
-      SELECT id, name, email, role, status
+      SELECT *
       FROM users
       WHERE 1 = 1
     `;
@@ -38,32 +38,149 @@ exports.getAll = async (req, res) => {
 
 /* ================= CREATE ================= */
 exports.create = async (req, res) => {
-  const { name, email, password, role } = req.body;
-  const hash = await bcrypt.hash(password, 10);
+  try {
+    const {
+      name,
+      email,
+      password,
+      role,
+      date_of_birth,
+      gender,
+      address,
+      position,
+      note,
+    } = req.body;
 
-  await db.promise().query(
-    "INSERT INTO users(name,email,password,role,status) VALUES (?,?,?,?,?)",
-    [name, email, hash, role, "pending"]
-  );
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Thiếu dữ liệu bắt buộc" });
+    }
 
-  res.json({ message: "Tạo user thành công" });
+    const hash = await bcrypt.hash(password, 10);
+
+    const avatar = req.file ? req.file.filename : null;
+
+    await db.promise().query(
+      `
+      INSERT INTO users (
+        name,
+        email,
+        password,
+        role,
+        status,
+        date_of_birth,
+        gender,
+        address,
+        position,
+        note,
+        avatar
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        name,
+        email,
+        hash,
+        role || "teacher",
+        "pending",
+        date_of_birth || null,
+        gender || null,
+        address || null,
+        position || null,
+        note || null,
+        avatar,
+      ]
+    );
+
+    res.json({ message: "Tạo giáo viên thành công" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
 };
 
+
+
 /* ================= UPDATE INFO ================= */
+
 exports.update = async (req, res) => {
-  const { name, role ,email} = req.body;
-  console.log(req.body);
-  
-  if (!name || !role) {
-    return res.status(400).json({ message: "Thiếu dữ liệu cập nhật" });
+  try {
+    const {
+      name,
+      email,
+      role,
+      status,
+      date_of_birth,
+      gender,
+      address,
+      position,
+      note,
+      password,
+    } = req.body;
+
+    const userId = req.params.id;
+
+    // validate bắt buộc
+    if (!name || !email || !role) {
+      return res.status(400).json({
+        message: "Thiếu dữ liệu bắt buộc (name, email, role)",
+      });
+    }
+
+    // avatar mới (nếu có upload)
+    const avatar = req.file ? req.file.filename : null;
+
+    let sql = `
+      UPDATE users SET
+        name = ?,
+        email = ?,
+        role = ?,
+        status = ?,
+        date_of_birth = ?,
+        gender = ?,
+        address = ?,
+        position = ?,
+        note = ?
+    `;
+
+    let params = [
+      name,
+      email,
+      role,
+      status || "active",
+      date_of_birth || null,
+      gender || null,
+      address || null,
+      position || null,
+      note || null,
+    ];
+
+    // nếu có avatar mới → update avatar
+    if (avatar) {
+      sql += `, avatar = ?`;
+      params.push(avatar);
+    }
+
+    // nếu có đổi mật khẩu
+    if (password && password.trim() !== "") {
+      const hash = await bcrypt.hash(password, 10);
+      sql += `, password = ?`;
+      params.push(hash);
+    }
+
+    sql += ` WHERE id = ?`;
+    params.push(userId);
+
+    await db.promise().query(sql, params);
+
+    res.json({
+      message: "Cập nhật thông tin giáo viên thành công",
+    });
+  } catch (error) {
+    console.error("UPDATE USER ERROR:", error);
+    res.status(500).json({
+      message: "Lỗi server",
+    });
   }
-
-  await db.promise().query(
-    "UPDATE users SET name=?, role=?, email=? WHERE id=?",
-    [name, role, email, req.params.id]
-  );
-
-  res.json({ message: "Cập nhật user thành công" });
 };
 
 /* ================= UPDATE STATUS ================= */
@@ -96,6 +213,7 @@ exports.updateStatus = async (req, res) => {
 
 /* ================= DELETE ================= */
 exports.remove = async (req, res) => {
+  
   await db.promise().query("DELETE FROM users WHERE id=?", [req.params.id]);
   res.json({ message: "Xoá thành công" });
 };
@@ -119,7 +237,7 @@ exports.getProfile = (req, res) => {
   const userId = req.user.id;
 
   db.query(
-    "SELECT id, name, email, role, status, created_at FROM users WHERE id = ?",
+    "SELECT * FROM users WHERE id = ?",
     [userId],
     (err, rows) => {
       if (err) return res.status(500).json(err);

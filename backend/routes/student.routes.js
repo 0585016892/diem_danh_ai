@@ -5,7 +5,10 @@ const multer = require("multer");
 const uploada = multer({ storage: multer.memoryStorage() });
 
 router.get("/", ctrl.getAll);
+router.get("/:id", ctrl.getOne);
+
 router.post(
+
   "/import-excel",
   uploada.single("file"),
   ctrl.importExcel

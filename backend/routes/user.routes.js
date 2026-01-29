@@ -3,6 +3,8 @@ const router = express.Router();
 
 const userController = require("../controllers/user.controller");
 const authMiddleware = require("../middleware/auth.middleware");
+const upload = require("../middleware/upload");
+
 
 /* ================= USERS ================= */
 
@@ -17,15 +19,15 @@ router.get(
 
 // Lấy thông tin user đang đăng nhập
 router.get("/me", authMiddleware, userController.getProfile);
-
+router.post("/",upload.single("avatar"), authMiddleware, userController.create);
+router.put("/:id",upload.single("avatar"), authMiddleware, userController.update);
 // Cập nhật thông tin cá nhân
 router.put("/me", authMiddleware, userController.updateProfile);
 
 // Đổi mật khẩu
 router.put("/me/password", authMiddleware, userController.changePassword);
 
-router.post("/", authMiddleware, userController.create);
-router.put("/:id", authMiddleware, userController.update);
+
 router.patch("/:id/status", authMiddleware, userController.updateStatus);
 router.delete("/:id", authMiddleware, userController.remove);
 

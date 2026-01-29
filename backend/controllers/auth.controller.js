@@ -63,6 +63,12 @@ exports.login = (req, res) => {
           role: user.role,
           class_id: user.class_id,
           status: user.status,
+          date_of_birth: user.date_of_birth,
+          gender: user.gender,
+          address: user.address,
+          position: user.position,
+          note: user.note,
+          avatar: user.avatar,
           created_at: user.created_at,
         },
       });

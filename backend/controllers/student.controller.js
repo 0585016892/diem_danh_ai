@@ -51,6 +51,50 @@ exports.getAll = async (req, res) => {
   }
 };
 
+exports.getOne = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const sql = `
+      SELECT 
+        s.id,
+        s.name,
+        s.student_code,
+        s.gender,
+        s.date_of_birth,
+        s.phone,
+        s.email,
+        s.address,
+        s.face_image,
+        s.face_encoding,
+        s.status,
+        s.note,
+        s.parent_name,
+        s.parent_relation,
+        s.created_at,
+        s.updated_at,
+        c.id AS class_id,
+        c.name AS class_name
+      FROM students s
+      JOIN classes c ON s.class_id = c.id
+      WHERE s.id = ?
+      LIMIT 1
+    `;
+
+    const [rows] = await pool.promise().query(sql, [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "Không tìm thấy học sinh",
+      });
+    }
+
+    res.json(rows[0]);
+  } catch (err) {
+    console.error("❌ getOne student error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 exports.create = async (req, res) => {
   try {
@@ -67,6 +111,8 @@ exports.create = async (req, res) => {
       email: req.body.email || null,
       address: req.body.address || null,
       note: req.body.note || null,
+      parent_name: req.body.parent_name || null,
+      parent_relation: req.body.parent_relation || null,
       status: req.body.status || "active",
       face_image: req.file ? req.file.filename : null,
       face_encoding: req.body.face_encoding || null,
@@ -169,6 +215,8 @@ exports.update = async (req, res) => {
       address: req.body.address || null,
       note: req.body.note || null,
       status: req.body.status || "active",
+      parent_name: req.body.parent_name || null,
+      parent_relation: req.body.parent_relation || null,
     };
 console.log(req.body);
 
